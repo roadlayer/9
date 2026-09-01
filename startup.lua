@@ -1,0 +1,1 @@
+shell.run("portal_manager.lua")
