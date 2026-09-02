@@ -389,12 +389,13 @@ local animation = {
                 local monitor = m.front
                 local x, y = graphics.getCenter(m.front, lines[1])
                 local fg, bg = colors.white, colors.black
-                monitor.clear()
                 self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
+                fg, bg = colors.black, colors.white
                 self.slowWrite(m.front, lines[2], x, y, bg, fg)
-                fg = colors.lime
+                fg, bg = colors.lime, colors.black
+                monitor.setBackgroundColor(bg)
                 for _, name in pairs(Listener.getPlayersInside()) do
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)
