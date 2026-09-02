@@ -323,7 +323,7 @@ local animation = {
                                                 { x = corners[3].x - 1, y = corners[3].y + 1 }, -- bottom left
                                                 { x = corners[4].x + 1, y = corners[4].y + 1 }  -- bottom right
                                         }
-                                until corners[1].y > corners[3].y
+                                until corners[1].y < 0
                         end
                         if once then break end
                         pause = pause*mult
