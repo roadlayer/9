@@ -147,6 +147,13 @@ local graphics = {
                         monitor.clear()
                 end
         end,
+        fillWithSymbol = function (self, monitor, symbol, fg, bg)
+                local width, height = monitor.getSize()
+                local string = string.rep(symbol, width)
+                for y = 1, height do
+                        self.write(monitor, string, 1, y, bg, fg)
+                end
+        end,
         updatePalette = function (monitors, color, new_color)
                 for _, monitor in pairs(monitors) do
                         monitor.setPaletteColor(color, new_color)

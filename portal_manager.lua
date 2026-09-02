@@ -48,7 +48,9 @@ local W = {
                 isRunning = false
         },
         attachedPeripheral = false,
-        buttons = {}
+        buttons = {},
+        nodesReady = 0,
+        nodeInUse,
 }
 local DEFAULTS = W
 
@@ -104,6 +106,7 @@ local Listener = {
                                         name = settings.get("portal_name")
                                 }
                                 rednet.send(id, pong, PROTOCOL)
+                                W.nodeInUse = id
                                 W.arrayInUse = true
                         elseif type(message) == "table" then -- <<<< receive pong
                                 table.insert(W.destinations, message)
@@ -113,6 +116,8 @@ local Listener = {
                                 W.selectedAsDestination = true
                         elseif message == "finished" then
                                 os.reboot() -- <<<< my best implementation of the garbage collector
+                        elseif message == "proceed" then
+                                W.nodesReady = W.nodesReady + 1
                         end
                 end
         end,
@@ -416,10 +421,8 @@ State = {
                         while self == CurrentState do sleep(TICKRATE)
                                 if #Listener.getPlayersInside() > 0 then
                                         CurrentState = State.waiting
-                                        W.randomSplash.isRunning = false
                                 elseif W.arrayInUse then
                                         CurrentState = State.busy
-                                        W.randomSplash.isRunning = false
                                 end
                         end
                 end,
@@ -432,7 +435,7 @@ State = {
                         
                 end,
                 update = function (self, text, x, y)
-                        while self == CurrentState do sleep(TICKRATE)
+                        while self == CurrentState do sleep(0.05)
                                 local touch = Listener.getTouchInput()
                                 if touch and touch.side == m.front.name then
                                         CurrentState = State.in_use
@@ -440,6 +443,8 @@ State = {
                                 if #Listener.getPlayersInside() == 0 then
                                         CurrentState = State.on_standby
                                         graphics:slowWrite(m.front, text, x, y, colors.black, colors.black)
+                                elseif W.arrayInUse then
+                                        CurrentState = State.busy
                                 end
                         end
                 end
@@ -447,13 +452,27 @@ State = {
         busy = {
                 name = "BUSY",
                 color = colors.red,
-                transitionIn = function (self)
-                        hatch.close()
-                        graphics.changePaletteColor(innerArray, colors.black, 0x000000)
-                        log("Array is in use, waiting to be selected or for process to finish")
-                end,
                 enter = function (self)
-                        
+                        log("Array is in use, waiting to be selected or for process to finish")
+                        for _, monitor in pairs(m) do
+                                local line1 = " NETWORK IS IN USE "
+                                local line2 = " PLEASE EXIT THE CABIN "
+                                local x1, y = graphics.getCenter(monitor, line1)
+                                local x2 = graphics.getCenter(monitor, line2)
+                                graphics:fillWithSymbol(monitor, string.char(127), colors.red, colors.black)
+                                for i = y - 2, y + 1 do
+                                        graphics.fillLine({monitor}, " ", x2, i, #line2, colors.red, colors.red)
+                                end
+                                graphics.write(monitor, line1, x1, y - 1, colors.red, colors.black)
+                                graphics.write(monitor, line2, x2, y, colors.red, colors.black)
+                        end
+                        while #Listener.getPlayersInside() > 0 do
+                                sleep(0.05)
+                        end
+                        hatch.close()
+                        rednet.send(W.nodeInUse, "proceed", PROTOCOL)
+                        graphics.clearAll(m)
+                        graphics.changePaletteColor(innerArray, colors.black, 0x000000)
                 end,
                 update = function (self)
                         while self == CurrentState do sleep(TICKRATE)
@@ -469,9 +488,14 @@ State = {
                 name = "IN USE",
                 color = colors.orange,
                 transitionIn = function (self)
+                        graphics.clearAll(m)
                         log("Requesting destinations")
                         rednet.broadcast("ping", PROTOCOL)
                         hatch.close()
+                        log("Waiting for other nodes to be ready")
+                        while #W.destinations ~= W.nodesReady do
+                                sleep(0.05)
+                        end
                         graphics.changePaletteColor(innerArray, colors.black, 0x000000)
                         log("Beginning selection")
                 end,
@@ -607,6 +631,7 @@ local function run()
                                 m.front.setTextScale(1)
                                 CurrentState:enter()
                                 CurrentState:update()
+                                W.randomSplash.isRunning = false
                         elseif State.waiting == CurrentState then
                                 W.updateBoardValues(CurrentState.name, CurrentState.color)
                                 local text = "TOUCH TO START"
@@ -630,7 +655,6 @@ local function run()
                                 CurrentState:update()
                         elseif State.busy == CurrentState then
                                 W.updateBoardValues(CurrentState.name, CurrentState.color)
-                                CurrentState:transitionIn()
                                 CurrentState:enter()
                                 CurrentState:update()
                         elseif State.sending == CurrentState then
