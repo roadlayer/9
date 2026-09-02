@@ -207,7 +207,7 @@ local animation = {
                         x = x + 1
                         sleep(rate or 0.05)
                 end
-                audio.stop()
+                audio.stop(); sleep(0.1)
         end,
         innerIdle = function ()
                 W.innerIdle.isRunning = true
@@ -719,7 +719,9 @@ local function run()
                                 spawn(function () animation.squareFade({m.top, m.bottom}, colors.lightGray, false, true, 0.08) end)
                                 end
                                 rednet.send(W.destination, "get_ready", PROTOCOL) -- <<<< insert cell on the other side
-                                spawn(function () audio.playSfx(audio.sound.sending) end)
+                                spawn(function () 
+                                        audio.stop(); sleep(0.1)
+                                        audio.playSfx(audio.sound.sending) end)
                                 spawn(function () animation.paletteShift() end)
                                 sleep(5.1)
                                 sio_port.activate()
