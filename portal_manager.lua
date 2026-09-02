@@ -397,7 +397,7 @@ local animation = {
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)
                         fg = colors.lime
-                        animation.slowWrite(monitor, name, x, y, bg, fg)
+                        self.slowWrite(monitor, name, x, y, bg, fg)
                 end               
         end,
         randomSplash = function ()
