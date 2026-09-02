@@ -389,6 +389,7 @@ local animation = {
                 local monitor = m.front
                 local x, y = graphics.getCenter(m.front, lines[1])
                 local fg, bg = colors.white, colors.black
+                monitor.clear()
                 self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
