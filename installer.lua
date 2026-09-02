@@ -4,6 +4,7 @@ local files = {
         "/sending.dfpwm",
         "/sonar_ping.dfpwm",
         "/warning.dfpwm",
+        "/reveal.dfpwm",
         "/graphics.lua",
         "/portal_manager.lua",
         "/setup.lua",
