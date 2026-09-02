@@ -641,7 +641,6 @@ State = {
                 color = colors.lime,
                 enter = function (self)
                         log("Received")
-                        rednet.broadcast("finished", PROTOCOL)
                         sleep(3)
                         hatch.open()
 
@@ -743,6 +742,7 @@ local function run()
                                         animation:reception() end)
                                 CurrentState:enter()
                                 W.updateBoardValues("REBOOTING", colors.white)
+                                rednet.broadcast("finished", PROTOCOL)
                                 os.reboot()
                         end
                 end
