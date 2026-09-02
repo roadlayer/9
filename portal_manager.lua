@@ -109,9 +109,13 @@ local Listener = {
                                 W.nodeInUse = id
                                 W.arrayInUse = true
                         elseif type(message) == "table" then -- <<<< receive pong
-                                table.insert(W.destinations, message)
-                                log("Destination added: "..message.id.." - "..message.name)
+                                if message.id then
+                                        table.insert(W.destinations, message)
+                                        log("Destination added: "..message.id.." - "..message.name)
                         ------------------------------------------
+                                elseif message.update then
+                                        shell.run("installer update "..message.address)
+                                end
                         elseif message == "get_ready" then
                                 W.selectedAsDestination = true
                         elseif message == "finished" then

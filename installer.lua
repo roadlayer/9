@@ -18,7 +18,6 @@ local function input()
 end
 
 function update(address)
-        local address = address or input()
         for _, path in pairs(files) do
                 if fs.exists(path) then
                         fs.delete(path)
@@ -31,12 +30,19 @@ end
 local CHANNEL = 2828
 local PROTOCOL = "H.O.M.U"
 
-function updateAll()
-        local address = input()
+function updateOthers(address)
         rednet.open()
         rednet.CHANNEL_BROADCAST = CHANNEL
         rednet.broadcast({
-                action = "update",
+                update = true,
                 address = address
         }, PROTOCOL)
+end
+
+local keyword = arg[1]
+
+if keyword == "update" then
+        update(input())
+elseif keyword == "updateAll" then
+        updateOthers(input())
 end
