@@ -42,6 +42,6 @@ end
 local keyword = arg[1]
 local address = "https://github.com/"..arg[2].."/raw/refs/heads/main"
 
-if keyword == "install" then
+if keyword == "i" then
         install(address)
 end
