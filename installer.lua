@@ -17,7 +17,7 @@ local function input()
         return "https://github.com/"..read().."/raw/refs/heads/main"
 end
 
-function update(address)
+function install(address)
         for _, path in pairs(files) do
                 if fs.exists(path) then
                         fs.delete(path)
@@ -41,8 +41,8 @@ end
 
 local keyword = arg[1]
 
-if keyword == "update" then
-        update(input())
+if keyword == "install" then
+        install(input())
 elseif keyword == "updateAll" then
         updateOthers(input())
 end
