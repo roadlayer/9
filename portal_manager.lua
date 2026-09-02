@@ -738,7 +738,6 @@ local function run()
                                         animation:reception() end)
                                 CurrentState:enter()
                                 W.updateBoardValues("REBOOTING", colors.white)
-                                sleep(3)
                                 os.reboot()
                         end
                 end
