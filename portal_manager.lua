@@ -392,13 +392,15 @@ local animation = {
                 self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
-                self.slowWrite(m.front, lines[2], x, y, fg, bg)
+                local fg, bg = colors.black, colors.white
+                self.slowWrite(m.front, lines[2], x, y, bg, fg)
+                local fg, bg = colors.lime, colors.black
                 for _, name in pairs(Listener.getPlayersInside()) do
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)
-                        fg = colors.lime
+                        
                         self.slowWrite(monitor, name, x, y, bg, fg)
-                end               
+                end
         end,
         randomSplash = function ()
                 while true do
