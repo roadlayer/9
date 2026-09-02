@@ -393,9 +393,8 @@ local animation = {
                 self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
-                fg, bg = colors.black, colors.white
                 self.slowWrite(m.front, lines[2], x, y, bg, fg)
-                fg, bg = colors.lime, colors.black
+                fg = colors.lime
                 for _, name in pairs(Listener.getPlayersInside()) do
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)

@@ -44,7 +44,4 @@ local address = "https://github.com/"..arg[2].."/raw/refs/heads/main"
 
 if keyword == "install" then
         install(address)
-elseif keyword == "updateAll" then
-        updateOthers(arg[2])
-        install(address)
 end
