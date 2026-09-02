@@ -114,7 +114,7 @@ local Listener = {
                                         log("Destination added: "..message.id.." - "..message.name)
                         ------------------------------------------
                                 elseif message.update then
-                                        shell.run("installer install "..message.address)
+                                        shell.run("installer install "..message.usernamerepo)
                                 end
                         elseif message == "get_ready" then
                                 W.selectedAsDestination = true

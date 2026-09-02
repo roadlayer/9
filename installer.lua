@@ -34,7 +34,7 @@ function updateOthers(address)
         rednet.CHANNEL_BROADCAST = CHANNEL
         rednet.broadcast({
                 update = true,
-                address = address
+                usernamerepo = address
         }, PROTOCOL)
 end
 
@@ -44,5 +44,5 @@ local address = "https://github.com/"..arg[2].."/raw/refs/heads/main"
 if keyword == "install" then
         install(address)
 elseif keyword == "updateOthers" then
-        updateOthers(address)
+        updateOthers(arg[2])
 end
