@@ -12,10 +12,7 @@ local files = {
         "/utils.lua",
 }
 
-local function input()
-        print("Enter name/repo")
-        return "https://github.com/"..read().."/raw/refs/heads/main"
-end
+
 
 function install(address)
         for _, path in pairs(files) do
@@ -31,7 +28,9 @@ local CHANNEL = 2828
 local PROTOCOL = "H.O.M.U"
 
 function updateOthers(address)
-        rednet.open()
+        rednet.open(peripheral.getName(peripheral.find("modem", function (_, modem)
+                return modem.isWireless()
+        end)))
         rednet.CHANNEL_BROADCAST = CHANNEL
         rednet.broadcast({
                 update = true,
@@ -40,9 +39,10 @@ function updateOthers(address)
 end
 
 local keyword = arg[1]
+local address = "https://github.com/"..arg[2].."/raw/refs/heads/main"
 
 if keyword == "install" then
-        install(input())
-elseif keyword == "updateAll" then
-        updateOthers(input())
+        install(address)
+elseif keyword == "updateOthers" then
+        updateOthers(address)
 end
