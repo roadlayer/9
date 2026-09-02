@@ -173,31 +173,37 @@ end
 local audio = {
         sound = {
                 sending = "/sending.dfpwm",
-                receiving = "/receiving.dfpwm",
+                warning = "/warning.dfpwm",
                 click = "/click.dfpwm",
-                lettering = "/lettering.dfpwm"
+                lettering = "/lettering.dfpwm",
+                reveal = "/reveal.dfpwm",
+                sonar_ping = "/sonar_ping.dfpwm"
         },
-        playSfx = function (sound)
+        playSfx = function (sound, volume)
                 local speaker = peripheral.find("speaker")
-                speaker.stop()
                 log("Playing "..sound, colors.yellow)
                 for chunk in io.lines(sound, 16 * 1024) do
                         local buffer = utils.decoder(chunk)
-
-                        while not speaker.playAudio(buffer, 3) do
+                        while not speaker.playAudio(buffer, volume or 3) do
                                 os.pullEvent("speaker_audio_empty")
                         end
                 end
+        end,
+        stop = function ()
+                local speaker = peripheral.find("speaker")
+                speaker.stop()
         end
 }
 local animation = {
         slowWrite = function (monitor, text, x, y, bg, fg, rate)
                 local charArray = utils.textToArray(text)
+                audio.playSfx(audio.sound.lettering, 0.1)
                 for char = 1, #charArray do
                         graphics.write(monitor, charArray[char], x, y, bg, fg)
                         x = x + 1
                         sleep(rate or 0.05)
                 end
+                audio.stop()
         end,
         innerIdle = function ()
                 W.innerIdle.isRunning = true
@@ -375,14 +381,14 @@ local animation = {
                 end
         end,
         reception = function (self)
-                local lines = {"Welcome to", settings.get("portal_name")}
+                local lines = {"Welcome To", " "..settings.get("portal_name").." "}
                 local monitor = m.front
                 local x, y = graphics.getCenter(m.front, lines[1])
                 local fg, bg = colors.white, colors.black
                 self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
-                self.slowWrite(m.front, lines[2], x, y, bg, fg)
+                self.slowWrite(m.front, lines[2], x, y, bg, bg)
                 for _, name in pairs(Listener.getPlayersInside()) do
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)
@@ -396,7 +402,9 @@ local animation = {
                                 local monitor = utils:randomFromDictionary(m, "back", true)
                                 graphics.splash(monitor, colors.magenta)
                                 sleep(1)
-                                graphics.splash(monitor, colors.black)
+                                if W.randomSplash.isRunning or monitor ~= m.front then
+                                        graphics.splash(monitor, colors.black)
+                                end
                         end
                         sleep(1)
                 end
@@ -431,6 +439,7 @@ State = {
                         W.outerIdle.isRunning = true
                 end,
                 update = function (self, ...)
+                        --CurrentState = State.busy -- <<<< test
                         while self == CurrentState do sleep(TICKRATE)
                                 if #Listener.getPlayersInside() > 0 then
                                         CurrentState = State.waiting
@@ -479,11 +488,12 @@ State = {
                                 graphics.write(monitor, line1, x1, y - 1, colors.red, colors.black)
                                 graphics.write(monitor, line2, x2, y, colors.red, colors.black)
                         end
+                        audio.playSfx(audio.sound.warning, 0.3)
                         while #Listener.getPlayersInside() > 0 do
                                 sleep(0.05)
                         end
                         hatch.close()
-                        rednet.send(W.nodeInUse, "proceed", PROTOCOL)
+                        --rednet.send(W.nodeInUse, "proceed", PROTOCOL)
                         graphics.clearAll(m)
                         graphics.changePaletteColor(innerArray, colors.black, 0x000000)
                 end,
@@ -521,8 +531,10 @@ State = {
                         local x, y = 2, 3
                         local width, height = m.front.getSize()
                         local fg, bg = colors.white, colors.gray
+                        audio.playSfx(audio.sound.reveal, 0.1)
                         W.buttons["abort"] = Button.new(m.front, "ABORT", x, height - 2, colors.black, colors.red, " ")
                         W.buttons["abort"].action = function ()
+                                audio.stop()
                                 audio.playSfx(audio.sound.click)
                                 W.buttons["abort"]:delete()
                                 local text = " ABORTED "
@@ -536,6 +548,7 @@ State = {
                         for key, destination in pairs(W.destinations) do
                                 W.buttons[destination.name] = Button.new(m.front, destination.name, x, y, fg, bg, " ")
                                 W.buttons[destination.name].action = function (self) -- <<<< first press
+                                        audio.stop()
                                         audio.playSfx(audio.sound.click)
                                         W.innerIdle.text = "CONFIRM?"
                                         W.innerIdle.color = colors.lime
@@ -551,6 +564,7 @@ State = {
                                         W.buttons[destination.name] = confirmationButton
                                         W.buttons[destination.name]:draw()
                                         W.buttons[destination.name].action = function (self)
+                                                audio.stop()
                                                 audio.playSfx(audio.sound.click)
                                                 W.buttons[destination.name]:delete()
                                                 for key2 in pairs(W.buttons) do
@@ -568,6 +582,7 @@ State = {
                                         W.buttons[destination.name.."_cancel"] = cancelButton
                                         W.buttons[destination.name.."_cancel"]:draw()
                                         W.buttons[destination.name.."_cancel"].action = function (self)
+                                                audio.stop()
                                                 audio.playSfx(audio.sound.click)
                                                 W.buttons[destination.name.."_cancel"]:delete()
                                                 for key2 in pairs(W.buttons) do
@@ -583,6 +598,7 @@ State = {
                                 x, y = 2, y + 2 -- <<<< i am actually trolling here
                         end
                         W.buttons["abort"]:draw()
+                        audio.stop()
                 end,
                 update = function (self)
                         local fg = colors.white
@@ -657,6 +673,7 @@ local function run()
                                 local text = "TOUCH TO START"
                                 local x, y = graphics.getCenter(m.front, "TOUCH TO START")
                                 spawn(function ()
+                                        graphics.splash(m.front, colors.black)
                                         animation.slowWrite(m.front, text, x, y, colors.black, colors.white)
                                 end)
                                 CurrentState:enter()
@@ -664,6 +681,7 @@ local function run()
                         elseif State.in_use == CurrentState then
                                 spawn( function ()
                                         local fg = colors.white
+                                        audio.playSfx(audio.sound.sonar_ping, 0.2)
                                         animation.squareFade({m.front}, fg, true, true) end)
                                         local text = "Waiting for network"
                                         local x, y = graphics.getCenter(m.front, text)
@@ -686,6 +704,7 @@ local function run()
                                 sio_port.importCell()
                                 do -- <<<< animation transition has to be here
                                         W.innerIdle.isRunning = false
+                                        audio.playSfx(audio.sound.reveal, 0.1)
                                         local width, height = m.front.getSize()
                                         graphics.splash(m.top, colors.white)
                                         graphics.splash(m.bottom, colors.white)
@@ -696,6 +715,7 @@ local function run()
                                         graphics.fillLine(ring, " ", 1, 1, width, colors.black, colors.black)
                                         graphics.fillLine(ring, " ", 1, height, width, colors.black, colors.black)
                                         sleep(0.1)
+                                        audio.stop()
                                 spawn(function () animation.squareFade({m.top, m.bottom}, colors.lightGray, false, true, 0.08) end)
                                 end
                                 rednet.send(W.destination, "get_ready", PROTOCOL) -- <<<< insert cell on the other side
