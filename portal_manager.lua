@@ -392,7 +392,7 @@ local animation = {
                 self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
-                self.slowWrite(m.front, lines[2], x, y, bg, bg)
+                self.slowWrite(m.front, lines[2], x, y, bg, fg)
                 for _, name in pairs(Listener.getPlayersInside()) do
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)
@@ -538,7 +538,6 @@ State = {
                         audio.playSfx(audio.sound.reveal, 0.1)
                         W.buttons["abort"] = Button.new(m.front, "ABORT", x, height - 2, colors.black, colors.red, " ")
                         W.buttons["abort"].action = function ()
-                                audio.stop()
                                 audio.playSfx(audio.sound.click)
                                 W.buttons["abort"]:delete()
                                 local text = " ABORTED "
@@ -552,7 +551,6 @@ State = {
                         for key, destination in pairs(W.destinations) do
                                 W.buttons[destination.name] = Button.new(m.front, destination.name, x, y, fg, bg, " ")
                                 W.buttons[destination.name].action = function (self) -- <<<< first press
-                                        audio.stop()
                                         audio.playSfx(audio.sound.click)
                                         W.innerIdle.text = "CONFIRM?"
                                         W.innerIdle.color = colors.lime
@@ -568,7 +566,6 @@ State = {
                                         W.buttons[destination.name] = confirmationButton
                                         W.buttons[destination.name]:draw()
                                         W.buttons[destination.name].action = function (self)
-                                                audio.stop()
                                                 audio.playSfx(audio.sound.click)
                                                 W.buttons[destination.name]:delete()
                                                 for key2 in pairs(W.buttons) do
@@ -586,7 +583,6 @@ State = {
                                         W.buttons[destination.name.."_cancel"] = cancelButton
                                         W.buttons[destination.name.."_cancel"]:draw()
                                         W.buttons[destination.name.."_cancel"].action = function (self)
-                                                audio.stop()
                                                 audio.playSfx(audio.sound.click)
                                                 W.buttons[destination.name.."_cancel"]:delete()
                                                 for key2 in pairs(W.buttons) do
