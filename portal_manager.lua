@@ -684,10 +684,11 @@ local function run()
                                 spawn( function ()
                                         local fg = colors.white
                                         audio.playSfx(audio.sound.sonar_ping, 0.2)
-                                        animation.squareFade({m.front}, fg, true, true) end)
+                                        animation.squareFade({m.front}, fg, true, true)
                                         local text = "Waiting for network"
                                         local x, y = graphics.getCenter(m.front, text)
                                         graphics.write(m.front, text, x, y, colors.black, colors.lightGray)
+                                end)
                                 W.updateBoardValues(CurrentState.name, CurrentState.color)
                                 CurrentState:transitionIn()
                                 spawn( function ()
