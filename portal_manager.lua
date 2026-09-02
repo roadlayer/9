@@ -118,6 +118,8 @@ local Listener = {
                                 os.reboot() -- <<<< my best implementation of the garbage collector
                         elseif message == "proceed" then
                                 W.nodesReady = W.nodesReady + 1
+                        elseif message == "aborted" then
+                                W.arrayInUse = false
                         end
                 end
         end,
@@ -171,10 +173,13 @@ end
 local audio = {
         sound = {
                 sending = "/sending.dfpwm",
-                receiving = "/receiving.dfpwm"
+                receiving = "/receiving.dfpwm",
+                click = "/click.dfpwm",
+                lettering = "/lettering.dfpwm"
         },
         playSfx = function (sound)
                 local speaker = peripheral.find("speaker")
+                speaker.stop()
                 log("Playing "..sound, colors.yellow)
                 for chunk in io.lines(sound, 16 * 1024) do
                         local buffer = utils.decoder(chunk)
@@ -186,6 +191,14 @@ local audio = {
         end
 }
 local animation = {
+        slowWrite = function (monitor, text, x, y, bg, fg, rate)
+                local charArray = utils.textToArray(text)
+                for char = 1, #charArray do
+                        graphics.write(monitor, charArray[char], x, y, bg, fg)
+                        x = x + 1
+                        sleep(rate or 0.05)
+                end
+        end,
         innerIdle = function ()
                 W.innerIdle.isRunning = true
                 W.innerIdle.isUpdated = true
@@ -361,20 +374,20 @@ local animation = {
                         sleep(0.05)
                 end
         end,
-        reception = function ()
+        reception = function (self)
                 local lines = {"Welcome to", settings.get("portal_name")}
                 local monitor = m.front
                 local x, y = graphics.getCenter(m.front, lines[1])
                 local fg, bg = colors.white, colors.black
-                graphics:slowWrite(m.front, lines[1], x, y, bg, fg)
+                self.slowWrite(m.front, lines[1], x, y, bg, fg)
                 monitor.scroll(1)
                 x, y = graphics.getCenter(m.front, lines[2])
-                graphics:slowWrite(m.front, lines[2], x, y, bg, fg)
+                self.slowWrite(m.front, lines[2], x, y, bg, fg)
                 for _, name in pairs(Listener.getPlayersInside()) do
                         monitor.scroll(1)
                         x, y = graphics.getCenter(monitor, name)
                         fg = colors.lime
-                        graphics:slowWrite(monitor, name, x, y, bg, fg)
+                        animation.slowWrite(monitor, name, x, y, bg, fg)
                 end               
         end,
         randomSplash = function ()
@@ -442,7 +455,7 @@ State = {
                                 end
                                 if #Listener.getPlayersInside() == 0 then
                                         CurrentState = State.on_standby
-                                        graphics:slowWrite(m.front, text, x, y, colors.black, colors.black)
+                                        animation.slowWrite(m.front, text, x, y, colors.black, colors.black)
                                 elseif W.arrayInUse then
                                         CurrentState = State.busy
                                 end
@@ -479,6 +492,7 @@ State = {
                                 if W.selectedAsDestination then
                                         CurrentState = State.receiving
                                 elseif not W.arrayInUse then
+                                        hatch.open()
                                         CurrentState = State.on_standby
                                 end
                         end
@@ -496,6 +510,7 @@ State = {
                         while #W.destinations ~= W.nodesReady do
                                 sleep(0.05)
                         end
+                        m.front.clear()
                         graphics.changePaletteColor(innerArray, colors.black, 0x000000)
                         log("Beginning selection")
                 end,
@@ -508,17 +523,20 @@ State = {
                         local fg, bg = colors.white, colors.gray
                         W.buttons["abort"] = Button.new(m.front, "ABORT", x, height - 2, colors.black, colors.red, " ")
                         W.buttons["abort"].action = function ()
+                                audio.playSfx(audio.sound.click)
                                 W.buttons["abort"]:delete()
                                 local text = " ABORTED "
                                 W.innerIdle.text = text..string.rep(string.char(127), width - #text)
                                 W.innerIdle.color = colors.red
                                 W.innerIdle.isUpdated = true
+                                rednet.broadcast("aborted", PROTOCOL)
                                 sleep(0.5)
                                 os.reboot()
                         end
                         for key, destination in pairs(W.destinations) do
                                 W.buttons[destination.name] = Button.new(m.front, destination.name, x, y, fg, bg, " ")
                                 W.buttons[destination.name].action = function (self) -- <<<< first press
+                                        audio.playSfx(audio.sound.click)
                                         W.innerIdle.text = "CONFIRM?"
                                         W.innerIdle.color = colors.lime
                                         W.innerIdle.isUpdated = true
@@ -533,6 +551,7 @@ State = {
                                         W.buttons[destination.name] = confirmationButton
                                         W.buttons[destination.name]:draw()
                                         W.buttons[destination.name].action = function (self)
+                                                audio.playSfx(audio.sound.click)
                                                 W.buttons[destination.name]:delete()
                                                 for key2 in pairs(W.buttons) do
                                                         if W.buttons[key2].isActive then
@@ -549,6 +568,7 @@ State = {
                                         W.buttons[destination.name.."_cancel"] = cancelButton
                                         W.buttons[destination.name.."_cancel"]:draw()
                                         W.buttons[destination.name.."_cancel"].action = function (self)
+                                                audio.playSfx(audio.sound.click)
                                                 W.buttons[destination.name.."_cancel"]:delete()
                                                 for key2 in pairs(W.buttons) do
                                                         if W.buttons[key2].isActive then
@@ -637,14 +657,17 @@ local function run()
                                 local text = "TOUCH TO START"
                                 local x, y = graphics.getCenter(m.front, "TOUCH TO START")
                                 spawn(function ()
-                                        graphics:slowWrite(m.front, text, x, y, colors.black, colors.white)
+                                        animation.slowWrite(m.front, text, x, y, colors.black, colors.white)
                                 end)
                                 CurrentState:enter()
                                 CurrentState:update(text, x, y)
-                                spawn(function ()
-                                        graphics:slowWrite(m.front, text, x, y, colors.black, colors.black)
-                                end)
                         elseif State.in_use == CurrentState then
+                                spawn( function ()
+                                        local fg = colors.white
+                                        animation.squareFade({m.front}, fg, true, true) end)
+                                        local text = "Waiting for network"
+                                        local x, y = graphics.getCenter(m.front, text)
+                                        graphics.write(m.front, text, x, y, colors.black, colors.lightGray)
                                 W.updateBoardValues(CurrentState.name, CurrentState.color)
                                 CurrentState:transitionIn()
                                 spawn( function ()
@@ -689,15 +712,10 @@ local function run()
                                 sio_port.activate()
                                 sleep(0.5)
                                 spawn( function ()
-                                --         sleep(0.1)
                                         local fg = colors.lime
-                                        animation.squareFade({m.back}, fg, true, true)
-                                --         spawn(function () animation.moveHorizontalLine(m.top, false, fg, 0.1) end)
-                                --         spawn(function () animation.moveHorizontalLine(m.bottom, true, fg, 0.1) end)
-                                --         spawn(function () animation.moveVerticalLine(m.left, false, fg, 0.1) end)
-                                --         spawn(function () animation.moveVerticalLine(m.right, true, fg, 0.1) end)
-                                end)
-                                spawn(animation.reception)
+                                        animation.squareFade({m.back}, fg, true, true) end)
+                                spawn(function ()
+                                        animation:reception() end)
                                 CurrentState:enter()
                                 W.updateBoardValues("REBOOTING", colors.white)
                                 sleep(3)

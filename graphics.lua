@@ -31,14 +31,6 @@ local graphics = {
                 monitor.setTextColor(fg)
                 monitor.write(text)
         end,
-        slowWrite = function (self, monitor, text, x, y, bg, fg, rate)
-                local charArray = utils.textToArray(text)
-                for char = 1, #charArray do
-                        self.write(monitor, charArray[char], x, y, bg, fg)
-                        x = x + 1
-                        sleep(rate or 0.05)
-                end
-        end,
         roll = function(monitors, charArray, x, y, width, fg_blit, bg_blit, reverse)
                 for _, monitor in pairs(monitors) do
                         monitor.setCursorPos(x, y)
