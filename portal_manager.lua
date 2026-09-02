@@ -497,7 +497,7 @@ State = {
                                 sleep(0.05)
                         end
                         hatch.close()
-                        --rednet.send(W.nodeInUse, "proceed", PROTOCOL)
+                        rednet.send(W.nodeInUse, "proceed", PROTOCOL)
                         graphics.clearAll(m)
                         graphics.changePaletteColor(innerArray, colors.black, 0x000000)
                 end,
