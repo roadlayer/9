@@ -37,7 +37,6 @@ function updateOthers(address)
                 update = true,
                 usernamerepo = address
         }, PROTOCOL)
-        install(address)
 end
 
 local keyword = arg[1]
