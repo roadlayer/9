@@ -684,12 +684,12 @@ local function run()
                                         local fg = colors.white
                                         audio.playSfx(audio.sound.sonar_ping, 0.2)
                                         animation.squareFade({m.front}, fg, true, true)
-                                        while W.nodesReady < #W.destinations do
+                                        repeat
                                                 local text = "Waiting for network "..W.nodesReady.."/"..#W.destinations
                                                 local x, y = graphics.getCenter(m.front, text)
                                                 graphics.write(m.front, text, x, y, colors.black, colors.lightGray)
                                                 sleep(0.05)
-                                        end
+                                        until W.nodesReady == #W.destinations
                                 end)
                                 W.updateBoardValues(CurrentState.name, CurrentState.color)
                                 CurrentState:transitionIn()
