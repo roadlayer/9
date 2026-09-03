@@ -175,6 +175,7 @@ function W.updateBoardValues(text, color)
 end
 
 local function abort()
+        local width = m.front.getSize()
         local text = " ABORTED "
         W.innerIdle.text = text..string.rep(string.char(127), width - #text)
         W.innerIdle.color = colors.red
