@@ -615,7 +615,7 @@ State = {
                                                 W.buttons[key]:update(touch)
                                         end
                                 end
-                                if #W.Listener.getPlayersInside() then
+                                if #Listener.getPlayersInside() == 0 then
                                         abort()
                                 elseif W.aborted then
                                         CurrentState = State.on_standby
