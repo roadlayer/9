@@ -466,10 +466,10 @@ State = {
                 update = function (self, text, x, y)
                         while self == CurrentState do sleep(0.05)
                                 local touch = Listener.getTouchInput()
-                                if touch and touch.side == m.front.name then
+                                if touch and touch.side == m.front.name and not W.arrayInUse then
+                                        rednet.broadcast("ping", PROTOCOL)
                                         CurrentState = State.in_use
-                                end
-                                if #Listener.getPlayersInside() == 0 then
+                                elseif #Listener.getPlayersInside() == 0 then
                                         CurrentState = State.on_standby
                                         animation.slowWrite(m.front, text, x, y, colors.black, colors.black)
                                 elseif W.arrayInUse then
@@ -521,7 +521,6 @@ State = {
                 transitionIn = function (self)
                         graphics.clearAll(m)
                         log("Requesting destinations")
-                        rednet.broadcast("ping", PROTOCOL)
                         hatch.close()
                         log("Waiting for other nodes to be ready")
                         while #W.destinations ~= W.nodesReady do
@@ -612,7 +611,7 @@ State = {
                                                 W.buttons[key]:update(touch)
                                         end
                                 end
-                                if W.aborted then
+                                if W.aborted or #Listener.getPlayersInside() == 0 then
                                         CurrentState = State.on_standby
                                         hatch:open()
                                 elseif W.destination then
