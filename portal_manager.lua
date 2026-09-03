@@ -615,10 +615,11 @@ State = {
                                                 W.buttons[key]:update(touch)
                                         end
                                 end
-                                if W.aborted or #Listener.getPlayersInside() == 0 then
+                                if #W.Listener.getPlayersInside() then
+                                        abort()
+                                elseif W.aborted then
                                         CurrentState = State.on_standby
                                         hatch:open()
-                                        abort()
                                 elseif W.destination then
                                         CurrentState = State.sending
                                 end
