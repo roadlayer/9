@@ -174,6 +174,16 @@ function W.updateBoardValues(text, color)
         W.outerIdle.isUpdated = true
 end
 
+local function abort()
+        local text = " ABORTED "
+        W.innerIdle.text = text..string.rep(string.char(127), width - #text)
+        W.innerIdle.color = colors.red
+        W.innerIdle.isUpdated = true
+        rednet.broadcast("aborted", PROTOCOL)
+        sleep(0.5)
+        os.reboot()
+end
+
 local audio = {
         sound = {
                 sending = "/sending.dfpwm",
@@ -542,13 +552,7 @@ State = {
                         W.buttons["abort"].action = function ()
                                 audio.playSfx(audio.sound.click)
                                 W.buttons["abort"]:delete()
-                                local text = " ABORTED "
-                                W.innerIdle.text = text..string.rep(string.char(127), width - #text)
-                                W.innerIdle.color = colors.red
-                                W.innerIdle.isUpdated = true
-                                rednet.broadcast("aborted", PROTOCOL)
-                                sleep(0.5)
-                                os.reboot()
+                                abort()
                         end
                         for key, destination in pairs(W.destinations) do
                                 W.buttons[destination.name] = Button.new(m.front, destination.name, x, y, fg, bg, " ")
@@ -614,6 +618,7 @@ State = {
                                 if W.aborted or #Listener.getPlayersInside() == 0 then
                                         CurrentState = State.on_standby
                                         hatch:open()
+                                        abort()
                                 elseif W.destination then
                                         CurrentState = State.sending
                                 end
