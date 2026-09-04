@@ -11,9 +11,8 @@ local files = {
         "/startup.lua",
         "/installer.lua",
         "/utils.lua",
+        "/command.lua"
 }
-
-
 
 function install(address)
         for _, path in pairs(files) do
@@ -23,20 +22,6 @@ function install(address)
                 shell.run("wget "..address..path)
         end
         os.reboot()
-end
-
-local CHANNEL = 2828
-local PROTOCOL = "H.O.M.U"
-
-function updateOthers(address)
-        rednet.open(peripheral.getName(peripheral.find("modem", function (_, modem)
-                return modem.isWireless()
-        end)))
-        rednet.CHANNEL_BROADCAST = CHANNEL
-        rednet.broadcast({
-                update = true,
-                usernamerepo = address
-        }, PROTOCOL)
 end
 
 local keyword = arg[1]

@@ -1,1 +1,3 @@
-shell.run("portal_manager.lua")
+shell.exit()
+shell.openTab("portal_manager.lua")
+shell.openTab("command.lua")

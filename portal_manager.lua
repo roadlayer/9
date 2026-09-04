@@ -5,7 +5,7 @@ local Button = require("graphics").Button
 
 TICKRATE = 0.4
 
-local CurrentState
+CurrentState = nil
 
 local function log(text, color)
         term.setTextColor(color or colors.white)
