@@ -220,7 +220,7 @@ function graphics.Button.new(monitor, text, x, y, fg, bg, padding, action)
                 padding = padding,
                 width = #text + (#padding)*2,
                 action = action,
-                rate = 0.07
+                rate = 0.1
         }
         setmetatable(button, {__index = graphics.Button})
         return button
