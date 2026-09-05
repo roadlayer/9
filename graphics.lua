@@ -170,6 +170,8 @@ local graphics = {
         end
 }
 
+graphics.Button.rate = 0.07
+
 graphics.Button = {
         draw = function (self)
                 local m = self.monitor
@@ -178,9 +180,9 @@ graphics.Button = {
                 local text = padding..self.text..padding
                 local fg, bg = self.fg, self.bg
                 graphics.fillLine({m}, " ", x, y, self.width, colors.white, colors.white)
-                sleep(0.1)
+                sleep(self.rate)
                 graphics.fillLine({m}, " ", x, y, self.width, colors.black, colors.black)
-                sleep(0.1)
+                sleep(self.rate)
                 graphics.addButton(m, text, x, y, fg, bg, padding)
                 self.isActive = true
         end,
@@ -191,9 +193,9 @@ graphics.Button = {
                 local text = padding..self.text..padding
                 local fg, bg = self.fg, self.bg
                 graphics.fillLine({m}, " ", x, y, self.width, colors.white, colors.white)
-                sleep(0.1)
+                sleep(self.rate)
                 graphics.fillLine({m}, " ", x, y, self.width, colors.black, colors.black)
-                sleep(0.1)
+                sleep(self.rate)
                 self.isActive = false
         end,
         update = function (self, touch)
