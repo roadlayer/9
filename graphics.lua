@@ -170,8 +170,6 @@ local graphics = {
         end
 }
 
-graphics.Button.rate = 0.07
-
 graphics.Button = {
         draw = function (self)
                 local m = self.monitor
@@ -221,7 +219,8 @@ function graphics.Button.new(monitor, text, x, y, fg, bg, padding, action)
                 fg = fg, bg = bg,
                 padding = padding,
                 width = #text + (#padding)*2,
-                action = action
+                action = action,
+                rate = 0.07
         }
         setmetatable(button, {__index = graphics.Button})
         return button
